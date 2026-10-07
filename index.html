@@ -93,7 +93,7 @@ header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:spac
 .sel{pointer-events:none;filter:url(#selGlow);animation:pulse 2.4s ease-in-out infinite}
 .sel .skin-fill{display:none}
 .sel .hit{display:none}
-#guide path{fill:none;stroke:#9fe3f2;stroke-width:2;stroke-dasharray:6 5;vector-effect:non-scaling-stroke}
+#guide g[mask] path{fill:none;stroke:#9fe3f2;stroke-width:4;stroke-dasharray:7 5;vector-effect:non-scaling-stroke}
 .olabel{font-family:var(--f-mono);fill:#e9f6fa;stroke:#04090d;stroke-width:3px;paint-order:stroke;stroke-linejoin:round;pointer-events:none;font-weight:500}
 .ftext{font-family:var(--f-mono);fill:var(--dim)}
 .lensring{vector-effect:non-scaling-stroke}
@@ -130,7 +130,7 @@ header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:spac
 .capture{position:absolute;z-index:4;background:#000;overflow:hidden;border-radius:6px}
 .capture video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .capture .camguide{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
-.capture .camguide path{fill:none;stroke:#9fe3f2;stroke-width:2.5;stroke-dasharray:7 6;vector-effect:non-scaling-stroke;filter:drop-shadow(0 0 3px rgba(0,0,0,.8))}
+.capture .camguide g[mask] path{fill:none;stroke:#9fe3f2;stroke-width:5;stroke-dasharray:8 6;vector-effect:non-scaling-stroke}
 .capture .corners{position:absolute;inset:14px;pointer-events:none;border:2px solid transparent;
   background:linear-gradient(var(--glow),var(--glow)) top left/26px 2px no-repeat,linear-gradient(var(--glow),var(--glow)) top left/2px 26px no-repeat,
   linear-gradient(var(--glow),var(--glow)) top right/26px 2px no-repeat,linear-gradient(var(--glow),var(--glow)) top right/2px 26px no-repeat,
@@ -2248,6 +2248,10 @@ function capsule(a, b){
 }
 const circle = q => { const r = q[2]/2; return `M${(q[0]-r).toFixed(1)},${q[1]} a${r},${r} 0 1,0 ${2*r},0 a${r},${r} 0 1,0 ${-2*r},0`; };
 let bodyPaths = [];
+function guideMarkup(id){
+  const paths = bodyPaths.map(d => `<path d="${d}"/>`).join('');
+  return `<defs><mask id="${id}" maskUnits="userSpaceOnUse" x="-600" y="-600" width="1700" height="2100"><rect x="-600" y="-600" width="1700" height="2100" fill="#fff"/><g fill="#000" stroke="none">${paths}</g></mask></defs><g mask="url(#${id})">${paths}</g>`;
+}
 function buildBody(){
   const b = bmi();
   const k = b == null ? 1 : clamp(Math.sqrt(b / bmiRef()), 0.86, 1.55);
@@ -2272,7 +2276,7 @@ function buildBody(){
   U = 820 / Hmax; S = h * U / BODY;
   const tf = `translate(${CX} ${FLOOR}) scale(${S.toFixed(4)}) translate(${-CX} ${-FLOOR})`;
   for (const id of ['skin', 'anatomy', 'hl', 'guide']) document.getElementById(id).setAttribute('transform', tf);
-  const guide = $('#guide'); guide.replaceChildren(); ds.forEach(d => el('path', {d}, guide));
+  $('#guide').innerHTML = guideMarkup('gm-film');
   buildRuler(Hmax);
 }
 function buildRuler(Hmax){
@@ -2428,7 +2432,7 @@ function placeCapture(){
 }
 async function openCapture(){
   setVB(0, 0, VW);
-  $('#camGuide').innerHTML = $('#guide').innerHTML;
+  $('#camGuide').innerHTML = guideMarkup('gm-cam');
   $('#camGuide').setAttribute('transform', $('#guide').getAttribute('transform'));
   $('#capture').hidden = false; placeCapture();
   $('#shoot').disabled = true;
